@@ -38,7 +38,7 @@ Internally, an Event always has two components \(in an array form\):
 
 ## Filtering
 
-In some cases is required to perform modifications on the Events content, the process to alter, enrich or drop Events is called Filtering.
+In some cases it is required to perform modifications on the Events content, the process to alter, enrich or drop Events is called Filtering.
 
 There are many use cases when Filtering is required like:
 
@@ -53,7 +53,7 @@ Every Event that gets into Fluent Bit gets assigned a Tag. This tag is an intern
 Most of the tags are assigned manually in the configuration. If a tag is not specified, Fluent Bit will assign the name of the Input plugin instance from where that Event was generated from.
 
 {% hint style="info" %}
-The only input plugin that **don't** assign Tags is [Forward](../pipeline/inputs/forward.md) input. This plugin speaks the Fluentd wire protocol called Forward where every Event already comes with a Tag associated. Fluent Bit will always use the incoming Tag set by the client.
+The only input plugin that **does NOT** assign tags is [Forward](../pipeline/inputs/forward.md) input. This plugin speaks the Fluentd wire protocol called Forward where every Event already comes with a Tag associated. Fluent Bit will always use the incoming Tag set by the client.
 {% endhint %}
 
 A Tagged record must always have a Matching rule. To learn more about Tags and Matches check the [Routing](data-pipeline/router.md) section.

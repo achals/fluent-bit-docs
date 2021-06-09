@@ -22,7 +22,7 @@ The plugin supports the following configuration parameters:
 
 | Key | Description | Default |
 | :--- | :--- | :--- |
-| Buffer\_Size | Set the buffer size for HTTP client when reading responses from Kubernetes API server. The value must be according to the [Unit Size](https://github.com/fluent/fluent-bit-docs/tree/b6af8ea32759e6e8250d853b3d21e44b4a5427f8/pipeline/configuration/unit_sizes.md) specification. A value of `0` results in no limit, and the buffer will expand as-needed. Note that if pod specifications exceed the buffer limit, the API response will be discarded when retrieving metadata, and some kubernetes metadata will fail to be injected to the logs. | 32k |
+| Buffer\_Size | Set the buffer size for HTTP client when reading responses from Kubernetes API server. The value must be according to the [Unit Size](../../administration/configuring-fluent-bit/unit-sizes.md) specification. A value of `0` results in no limit, and the buffer will expand as-needed. Note that if pod specifications exceed the buffer limit, the API response will be discarded when retrieving metadata, and some kubernetes metadata will fail to be injected to the logs. | 32k |
 | Kube\_URL | API Server end-point | [https://kubernetes.default.svc:443](https://kubernetes.default.svc:443) |
 | Kube\_CA\_File | CA certificate file | /var/run/secrets/kubernetes.io/serviceaccount/ca.crt |
 | Kube\_CA\_Path | Absolute path to scan for certificate files |  |
@@ -36,6 +36,7 @@ The plugin supports the following configuration parameters:
 | tls.debug | Debug level between 0 \(nothing\) and 4 \(every detail\). | -1 |
 | tls.verify | When enabled, turns on certificate validation when connecting to the Kubernetes API server. | On |
 | Use\_Journal | When enabled, the filter reads logs coming in Journald format. | Off |
+| Cache\_Use\_Docker\_Id | When enabled, metadata will be fetched from K8s when docker\_id is changed. | Off |
 | Regex\_Parser | Set an alternative Parser to process record Tag and extract pod\_name, namespace\_name, container\_name and docker\_id. The parser must be registered in a [parsers file](https://github.com/fluent/fluent-bit/blob/master/conf/parsers.conf) \(refer to parser _filter-kube-test_ as an example\). |  |
 | K8S-Logging.Parser | Allow Kubernetes Pods to suggest a pre-defined Parser \(read more about it in Kubernetes Annotations section\) | Off |
 | K8S-Logging.Exclude | Allow Kubernetes Pods to exclude their logs from the log processor \(read more about it in Kubernetes Annotations section\). | Off |
@@ -45,6 +46,8 @@ The plugin supports the following configuration parameters:
 | Dummy\_Meta | If set, use dummy-meta data \(for test/dev purposes\) | Off |
 | DNS\_Retries | DNS lookup retries N times until the network start working | 6 |
 | DNS\_Wait\_Time | DNS lookup interval between network status checks | 30 |
+| Use\_Kubelet | this is an optional feature flag to get metadata information from kubelet instead of calling Kube Server API to enhance the log. This could mitigate the [Kube API heavy traffic issue for large cluster](kubernetes.md#optional-feature-using-kubelet-to-get-metadata). | Off |
+| Kubelet\_Port | kubelet port using for HTTP request, this only works when `Use_Kubelet`  set to On. | 10250 |
 
 ## Processing the 'log' value
 
@@ -127,7 +130,7 @@ Note that the annotation value is boolean which can take a _true_ or _false_ and
 
 ## Workflow of Tail + Kubernetes Filter
 
-Kubernetes Filter depends on either [Tail](https://github.com/fluent/fluent-bit-docs/tree/b6af8ea32759e6e8250d853b3d21e44b4a5427f8/pipeline/input/tail.md) or [Systemd](https://github.com/fluent/fluent-bit-docs/tree/b6af8ea32759e6e8250d853b3d21e44b4a5427f8/pipeline/input/systemd.md) input plugins to process and enrich records with Kubernetes metadata. Here we will explain the workflow of Tail and how it configuration is correlated with Kubernetes filter. Consider the following configuration example \(just for demo purposes, not production\):
+Kubernetes Filter depends on either [Tail](../inputs/tail.md) or [Systemd](../inputs/systemd.md) input plugins to process and enrich records with Kubernetes metadata. Here we will explain the workflow of Tail and how it configuration is correlated with Kubernetes filter. Consider the following configuration example \(just for demo purposes, not production\):
 
 ```text
 [INPUT]
@@ -147,7 +150,7 @@ Kubernetes Filter depends on either [Tail](https://github.com/fluent/fluent-bit-
     Merge_Log_Key    log_processed
 ```
 
-In the input section, the [Tail](https://github.com/fluent/fluent-bit-docs/tree/b6af8ea32759e6e8250d853b3d21e44b4a5427f8/pipeline/input/tail.md) plugin will monitor all files ending in _.log_ in path _/var/log/containers/_. For every file it will read every line and apply the docker parser. Then the records are emitted to the next step with an expanded tag.
+In the input section, the [Tail](../inputs/tail.md) plugin will monitor all files ending in _.log_ in path _/var/log/containers/_. For every file it will read every line and apply the docker parser. Then the records are emitted to the next step with an expanded tag.
 
 Tail support Tags expansion, which means that if a tag have a star character \(\*\), it will replace the value with the absolute path of the monitored file, so if you file name and path is:
 
@@ -202,4 +205,189 @@ Under certain and not common conditions, a user would want to alter that hard-co
 #### Final Comments
 
 So at this point the filter is able to gather the values of _pod\_name_ and _namespace_, with that information it will check in the local cache \(internal hash table\) if some metadata for that key pair exists, if so, it will enrich the record with the metadata value, otherwise it will connect to the Kubernetes Master/API Server and retrieve that information.
+
+## Optional Feature: Using Kubelet to Get Metadata
+
+There is an [issue](https://github.com/fluent/fluent-bit/issues/1948) reported about kube-apiserver fall over and become unresponsive when cluster is too large and too many requests are sent to it. For this feature, fluent bit Kubernetes filter will send the request to kubelet /pods endpoint instead of kube-apiserver to retrieve the pods information and use it to enrich the log. Since Kubelet is running locally in nodes, the request would be responded faster and each node would only get one request one time. This could save kube-apiserver power to handle other requests. When this feature is enabled, you should see no difference in the kubernetes metadata added to logs, but the Kube-apiserver bottleneck should be avoided when cluster is large.
+
+### Configuration Setup
+
+There are some configuration setup needed for this feature.
+
+Role Configuration for Fluent Bit DaemonSet Example:
+
+```text
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentbitds
+  namespace: fluentbit-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: fluentbit
+rules:
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - pods
+      - nodes
+      - nodes/proxy
+    verbs: 
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: fluentbit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluentbit
+subjects:
+  - kind: ServiceAccount
+    name: fluentbitds
+    namespace: fluentbit-system
+```
+
+The difference is that kubelet need a special permission for resource `nodes/proxy` to get HTTP request in. When creating the `role` or `clusterRole`, you need to add `nodes/proxy` into the rule for resource.
+
+Fluent Bit Configuration Example:
+
+```text
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        DB                /var/log/flb_kube.db
+        Parser            docker
+        Docker_Mode       On
+        Mem_Buf_Limit     50MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Merge_Log           On
+        Buffer_Size         0
+        Use_Kubelet         true
+        Kubelet_Port        10250
+```
+
+So for fluent bit configuration, you need to set the `Use_Kubelet` to true to enable this feature.
+
+DaemonSet config Example:
+
+```text
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentbit
+  namespace: fluentbit-system
+  labels:
+    app.kubernetes.io/name: fluentbit
+spec:
+  selector:
+    matchLabels:
+      name: fluentbit
+  template:
+    metadata:
+      labels:
+        name: fluentbit
+    spec:
+      serviceAccountName: fluentbitds
+      containers:
+        - name: fluent-bit
+          imagePullPolicy: Always
+          image: fluent/fluent-bit:latest
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc/
+          resources:
+            limits:
+              memory: 1500Mi
+            requests:
+              cpu: 500m
+              memory: 500Mi
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: fluentbit-config
+          configMap:
+            name: fluentbit-config
+```
+
+The key point is to set `hostNetwork` to `true` and `dnsPolicy` to `ClusterFirstWithHostNet` that fluent bit DaemonSet could call Kubelet locally. Otherwise it could not resolve the dns for kubelet.
+
+Now you are good to use this new feature!
+
+### Verify that the Use\_Kubelet option is working
+
+Basically you should see no difference about your experience for enriching your log files with Kubernetes metadata.
+
+To check if Fluent Bit is using the kubelet, you can check fluent bit logs and there should be a log like this:
+
+```text
+[ info] [filter:kubernetes:kubernetes.0] testing connectivity with Kubelet...
+```
+
+And if you are in debug mode, you could see more:
+
+```text
+[debug] [filter:kubernetes:kubernetes.0] Send out request to Kubelet for pods information.
+[debug] [filter:kubernetes:kubernetes.0] Request (ns=<namespace>, pod=node name) http_do=0, HTTP Status: 200
+[ info] [filter:kubernetes:kubernetes.0] connectivity OK
+[2021/02/05 10:33:35] [debug] [filter:kubernetes:kubernetes.0] Request (ns=<Namespace>, pod=<podName>) http_do=0, HTTP Status: 200
+[2021/02/05 10:33:35] [debug] [filter:kubernetes:kubernetes.0] kubelet find pod: <podName> and ns: <Namespace> match
+```
+
+## Troubleshooting
+
+The following section goes over specific log messages you may run into and how to solve them to ensure that Fluent Bit's Kubernetes filter is operating properly
+
+### I can't see metadata appended to my pod or other Kubernetes objects
+
+If you are not seeing metadata added to your kubernetes logs and see the following in your log message, then you may be facing connectivity issues with the Kubernetes API server. 
+
+```text
+[2020/10/15 03:48:57] [ info] [filter_kube] testing connectivity with API server...
+[2020/10/15 03:48:57] [error] [filter_kube] upstream connection error
+[2020/10/15 03:48:57] [ warn] [filter_kube] could not get meta for POD
+```
+
+**Potential fix \#1: Check Kubernetes roles**
+
+When Fluent Bit is deployed as a DaemonSet it generally runs with specific roles that allow the application to talk to the Kubernetes API server. If you are deployed in a more restricted environment check that all the Kubernetes roles are set correctly.
+
+**Potential fix \#2: Check Kubernetes IPv6**
+
+There may be cases where you have IPv6 on in the environment and you need to enable this within Fluent Bit. Under the service tag please set the following option `ipv6` to `on` .
+
+**Potential fix \#3: Check connectivity to Kube\_URL**
+
+By default the Kube\_URL is set to `https://kubernetes.default.svc:443` . Ensure that you have connectivity to this endpoint from within the cluster and that there are no special permission interfering with the connection.
+
+### I can't see new objects getting metadata
+
+ In some cases, you may only see some objects being appended with metadata while other objects are not enriched.  This can occur at times when local data is cached and does not contain the correct id for the kubernetes object that requires enrichment. For most Kubernetes objects the Kubernetes API server is updated which will then be reflected in Fluent Bit logs, however in some cases for `Pod` objects this refresh to the Kubernetes API server can be skipped, causing metadata to be skipped.
 

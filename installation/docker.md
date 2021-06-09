@@ -8,9 +8,17 @@ The following table describe the tags are available on Docker Hub [fluent/fluent
 
 | Tag\(s\) | Manifest Architectures | Description |
 | :--- | :--- | :--- |
-| 1.5 | x86\_64, arm64v8, arm32v7 | Latest release of 1.5.x series. |
-| 1.5.0 | x86\_64, arm64v8, arm32v7 | Release [v1.5.0](https://fluentbit.io/announcements/v1.5.0/) |
-| 1.5-debug, 1.5.0-debug | x86\_64 | v1.5.x releases + Busybox |
+| 1.7 | x86\_64, arm64v8, arm32v7 | Latest release of 1.7.x series. |
+| 1.7.4 | x86\_64, arm64v8, arm32v7 | Release [v1.7.4](https://fluentbit.io/announcements/v1.7.4/) |
+| 1.7-debug, 1.7.4-debug | x86\_64 | v1.7.x releases + Busybox |
+| 1.7.3 | x86\_64, arm64v8, arm32v7 | Release [v1.7.3](https://fluentbit.io/announcements/v1.7.3/) |
+| 1.7-debug, 1.7.3-debug | x86\_64 | v1.7.x releases + Busybox |
+| 1.7.2 | x86\_64, arm64v8, arm32v7 | Release [v1.7.2](https://fluentbit.io/announcements/v1.7.2/) |
+| 1.7-debug, 1.7.2-debug | x86\_64 | v1.7.x releases + Busybox |
+| 1.7.1 | x86\_64, arm64v8, arm32v7 | Release [v1.7.1](https://fluentbit.io/announcements/v1.7.1/) |
+| 1.7-debug, 1.7.1-debug | x86\_64 | v1.7.x releases + Busybox |
+| 1.7.0 | x86\_64, arm64v8, arm32v7 | Release [v1.7.0](https://fluentbit.io/announcements/v1.7.0/) |
+| 1.7-debug, 1.7.0-debug | x86\_64 | v1.7.x releases + Busybox |
 
 It's strongly suggested that you always use the latest image of Fluent Bit.
 
@@ -30,22 +38,22 @@ For every architecture we build the layers using the following base images:
 
 ## Getting Started
 
-Download the last stable image from 1.4 series:
+Download the last stable image from 1.7 series:
 
 ```text
-$ docker pull fluent/fluent-bit:1.5
+$ docker pull fluent/fluent-bit:1.7
 ```
 
 Once the image is in place, now run the following \(useless\) test which makes Fluent Bit measure CPU usage by the container:
 
 ```text
-$ docker run -ti fluent/fluent-bit:1.5 /fluent-bit/bin/fluent-bit -i cpu -o stdout -f 1
+$ docker run -ti fluent/fluent-bit:1.7 /fluent-bit/bin/fluent-bit -i cpu -o stdout -f 1
 ```
 
 That command will let Fluent Bit measure CPU usage every second and flush the results to the standard output, e.g:
 
 ```text
-Fluent-Bit v1.5.x
+Fluent-Bit v1.7.x
 Copyright (C) Treasure Data
 
 [2019/10/01 12:29:02] [ info] [engine] started

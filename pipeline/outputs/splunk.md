@@ -1,3 +1,7 @@
+---
+description: Send logs to Splunk HTTP Event Collector
+---
+
 # Splunk
 
 Splunk output plugin allows to ingest your records into a [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html) service through the HTTP Event Collector \(HEC\) interface.
@@ -36,8 +40,7 @@ To get more details about how to setup the HEC in Splunk please refer to the fol
       <td style="text-align:left">
         <p>When enabled, the record keys and values are set in the top level of the
           map instead of under the <em>event</em> key.</p>
-        <p></p>
-        <p><b>note: </b>refer to the Sending Raw Events section below for more details
+        <p><b>note:</b> refer to the Sending Raw Events section below for more details
           to make this option work properly.</p>
       </td>
       <td style="text-align:left">Off</td>
@@ -165,4 +168,54 @@ Consider the following example:
 For up to date information about the valid keys in the top level object, refer to the Splunk documentation:
 
 [http://docs.splunk.com/Documentation/Splunk/latest/Data/AboutHEC](http://docs.splunk.com/Documentation/Splunk/latest/Data/AboutHEC)
+
+## Splunk Metric Index
+
+With Splunk version 8.0&gt; you can also use the Fluent Bit Splunk output plugin to send data to metric indices. This allows you to perform visualizations, metric queries, and analysis with other metrics you may be collecting. This is based off of Splunk 8.0 support of multi metric support via single JSON payload, more details can be found on [Splunk's documentation page](https://docs.splunk.com/Documentation/Splunk/8.1.2/Metrics/GetMetricsInOther#The_multiple-metric_JSON_format)
+
+Sending to a Splunk Metric index requires the use of `Splunk_send_raw` option being enabled and formatting the message properly. This includes three specific operations
+
+* Nest metric events under a "fields" property
+* Add `metric_name:`  to all metrics
+* Add index, source, sourcetype as fields in the message
+
+### Example Configuration
+
+The following configuration gathers CPU metrics, nests the appropriate field, adds the required identifiers and then sends to Splunk.
+
+```text
+[INPUT]
+    name cpu
+    tag cpu
+
+# Move CPU metrics to be nested under "fields" and 
+# add the prefix "metric_name:" to all metrics
+# NOTE: you can change Wildcard field to only select metric fields    
+[FILTER]
+    Name nest
+    Match cpu
+    Wildcard *
+    Operation nest
+    Nest_under fields
+    Add_Prefix metric_name:
+
+# Add index, source, sourcetype
+[FILTER]
+    Name    modify
+    Match   cpu
+    Set index cpu-metrics 
+    Set source fluent-bit
+    Set sourcetype custom
+
+# ensure splunk_send_raw is on
+[OUTPUT]
+    name splunk 
+    match *
+    host <HOST>
+    port 8088
+    splunk_send_raw on
+    splunk_token f9bd5bdb-c0b2-4a83-bcff-9625e5e908db 
+    tls on
+    tls.verify off
+```
 

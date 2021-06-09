@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Fluent Bit v1.5 Documentation](README.md)
+* [Fluent Bit v1.7 Documentation](README.md)
 
 ## About
 
@@ -23,6 +23,7 @@
 
 ## Installation
 
+* [Getting Started with Fluent Bit](installation/getting-started-with-fluent-bit.md)
 * [Upgrade Notes](installation/upgrade-notes.md)
 * [Supported Platforms](installation/supported-platforms.md)
 * [Requirements](installation/requirements.md)
@@ -52,6 +53,7 @@
   * [Commands](administration/configuring-fluent-bit/commands.md)
   * [Upstream Servers](administration/configuring-fluent-bit/upstream-servers.md)
   * [Unit Sizes](administration/configuring-fluent-bit/unit-sizes.md)
+  * [Record Accessor](administration/configuring-fluent-bit/record-accessor.md)
 * [Security](administration/security.md)
 * [Buffering & Storage](administration/buffering-and-storage.md)
 * [Backpressure](administration/backpressure.md)
@@ -60,6 +62,7 @@
 * [Memory Management](administration/memory-management.md)
 * [Monitoring](administration/monitoring.md)
 * [Dump Internals / Signal](administration/dump-internals-signal.md)
+* [HTTP Proxy](administration/http-proxy.md)
 
 ## Local Testing
 
@@ -72,11 +75,13 @@
   * [Collectd](pipeline/inputs/collectd.md)
   * [CPU Metrics](pipeline/inputs/cpu-metrics.md)
   * [Disk I/O Metrics](pipeline/inputs/disk-io-metrics.md)
+  * [Docker Metrics](pipeline/inputs/docker-metrics.md)
   * [Docker Events](pipeline/inputs/docker-events.md)
   * [Dummy](pipeline/inputs/dummy.md)
   * [Exec](pipeline/inputs/exec.md)
   * [Forward](pipeline/inputs/forward.md)
   * [Head](pipeline/inputs/head.md)
+  * [HTTP](pipeline/inputs/http.md)
   * [Health](pipeline/inputs/health.md)
   * [Kernel Logs](pipeline/inputs/kernel-logs.md)
   * [Memory Metrics](pipeline/inputs/memory-metrics.md)
@@ -86,6 +91,7 @@
   * [Random](pipeline/inputs/random.md)
   * [Serial Interface](pipeline/inputs/serial-interface.md)
   * [Standard Input](pipeline/inputs/standard-input.md)
+  * [StatsD](pipeline/inputs/statsd.md)
   * [Syslog](pipeline/inputs/syslog.md)
   * [Systemd](pipeline/inputs/systemd.md)
   * [Tail](pipeline/inputs/tail.md)
@@ -101,6 +107,7 @@
 * [Filters](pipeline/filters/README.md)
   * [AWS Metadata](pipeline/filters/aws-metadata.md)
   * [Expect](pipeline/filters/expect.md)
+  * [GeoIP2 Filter](pipeline/filters/geoip2-filter.md)
   * [Grep](pipeline/filters/grep.md)
   * [Kubernetes](pipeline/filters/kubernetes.md)
   * [Lua](pipeline/filters/lua.md)
@@ -111,11 +118,15 @@
   * [Throttle](pipeline/filters/throttle.md)
   * [Nest](pipeline/filters/nest.md)
   * [Modify](pipeline/filters/modify.md)
+  * [Tensorflow](pipeline/filters/tensorflow.md)
 * [Outputs](pipeline/outputs/README.md)
   * [Amazon CloudWatch](pipeline/outputs/cloudwatch.md)
-  * [Azure](pipeline/outputs/azure.md)
+  * [Amazon Kinesis Data Firehose](pipeline/outputs/firehose.md)
+  * [Amazon Kinesis Data Streams](pipeline/outputs/kinesis.md)
+  * [Amazon S3](pipeline/outputs/s3.md)
+  * [Azure Log Analytics](pipeline/outputs/azure.md)
   * [Azure Blob](pipeline/outputs/azure_blob.md)
-  * [BigQuery](pipeline/outputs/bigquery.md)
+  * [Google Cloud BigQuery](pipeline/outputs/bigquery.md)
   * [Counter](pipeline/outputs/counter.md)
   * [Datadog](pipeline/outputs/datadog.md)
   * [Elasticsearch](pipeline/outputs/elasticsearch.md)
@@ -128,16 +139,19 @@
   * [Kafka](pipeline/outputs/kafka.md)
   * [Kafka REST Proxy](pipeline/outputs/kafka-rest-proxy.md)
   * [LogDNA](pipeline/outputs/logdna.md)
+  * [Loki](pipeline/outputs/loki.md)
   * [NATS](pipeline/outputs/nats.md)
   * [New Relic](pipeline/outputs/new-relic.md)
   * [NULL](pipeline/outputs/null.md)
   * [PostgreSQL](pipeline/outputs/postgresql.md)
+  * [Slack](pipeline/outputs/slack.md)
   * [Stackdriver](pipeline/outputs/stackdriver.md)
   * [Standard Output](pipeline/outputs/standard-output.md)
   * [Splunk](pipeline/outputs/splunk.md)
   * [Syslog](pipeline/outputs/syslog.md)
   * [TCP & TLS](pipeline/outputs/tcp-and-tls.md)
   * [Treasure Data](pipeline/outputs/treasure-data.md)
+  * [WebSocket](pipeline/outputs/websocket.md)
 
 ## Stream Processing
 

@@ -10,24 +10,25 @@ The **http** output plugin allows to flush your records into a HTTP endpoint. Fo
 | http\_User | Basic Auth Username |  |
 | http\_Passwd | Basic Auth Password. Requires HTTP\_User to be set |  |
 | port | TCP port of the target HTTP Server | 80 |
-| Proxy | Specify an HTTP Proxy. The expected format of this value is [http://host:port](http://host:port). Note that _https_ is **not** supported yet. |  |
+| Proxy | Specify an HTTP Proxy. The expected format of this value is [http://host:port](http://host:port). Note that _https_ is **not** supported yet. Please consider not setting this and use `HTTP_PROXY` environment variable instead, which supports both http and https. |  |
 | uri | Specify an optional HTTP URI for the target web server, e.g: /something | / |
 | compress | Set payload compression mechanism. Option available is 'gzip' |  |
 | format | Specify the data format to be used in the HTTP request body, by default it uses _msgpack_. Other supported formats are _json_, _json\_stream_ and _json\_lines_ and _gelf_. | msgpack |
 | allow\_duplicated\_headers | Specify if duplicated headers are allowed. If a duplicated header is found, the latest key/value set is preserved. | true |
+| log\_response\_payload | Specify if the response paylod should be logged or not. | true |
 | header\_tag | Specify an optional HTTP header field for the original message tag. |  |
 | header | Add a HTTP header key/value pair. Multiple headers can be set. |  |
 | json\_date\_key | Specify the name of the time key in the output record. To disable the time key just set the value to `false`. | date |
 | json\_date\_format | Specify the format of the date. Supported formats are _double_, _epoch_ and _iso8601_ \(eg: _2018-05-30T09:39:52.000681Z_\) | double |
 | gelf\_timestamp\_key | Specify the key to use for `timestamp` in _gelf_ format |  |
 | gelf\_host\_key | Specify the key to use for the `host` in _gelf_ format |  |
-| gelf\_short\_messge\_key | Specify the key to use as the `short` message in _gelf_ format |  |
+| gelf\_short\_message\_key | Specify the key to use as the `short` message in _gelf_ format |  |
 | gelf\_full\_message\_key | Specify the key to use for the `full` message in _gelf_ format |  |
 | gelf\_level\_key | Specify the key to use for the `level` in _gelf_ format |  |
 
 ### TLS / SSL
 
-HTTP output plugin supports TTL/SSL, for more details about the properties available and general configuration, please refer to the [TLS/SSL](https://github.com/fluent/fluent-bit-docs/tree/16f30161dc4c79d407cd9c586a0c6839d0969d97/pipeline/configuration/tls_ssl.md) section.
+HTTP output plugin supports TTL/SSL, for more details about the properties available and general configuration, please refer to the [TLS/SSL](tcp-and-tls.md) section.
 
 ## Getting Started
 

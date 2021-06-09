@@ -1,6 +1,6 @@
 # Parser
 
-The _Parser Filter_ plugin allows to parse field in event records.
+The _Parser Filter_ plugin allows for parsing fields in event records.
 
 ## Configuration Parameters
 
@@ -12,15 +12,15 @@ The plugin supports the following configuration parameters:
 | Parser | Specify the parser name to interpret the field. Multiple _Parser_ entries are allowed \(one per line\). |  |
 | Preserve\_Key | Keep original `Key_Name` field in the parsed result. If false, the field will be removed. | False |
 | Reserve\_Data | Keep all other original fields in the parsed result. If false, all other original fields will be removed. | False |
-| Unescape\_Key | If the key is a escaped string \(e.g: stringify JSON\), unescape the string before to apply the parser. | False |
+| Unescape\_Key | If the key is an escaped string \(e.g: stringify JSON\), unescape the string before applying the parser. | False |
 
 ## Getting Started
 
 ### Configuration File
 
-This is an example to parser a record `{"data":"100 0.5 true This is example"}`.
+This is an example of parsing a record `{"data":"100 0.5 true This is example"}`.
 
-The plugin needs parser file which defines how to parse field.
+The plugin needs a parser file which defines how to parse each field.
 
 ```python
 [PARSER]
@@ -29,7 +29,7 @@ The plugin needs parser file which defines how to parse field.
     Regex ^(?<INT>[^ ]+) (?<FLOAT>[^ ]+) (?<BOOL>[^ ]+) (?<STRING>.+)$
 ```
 
-The path of parser file should be written in configuration file at **\[SERVICE\]** section.
+The path of the parser file should be written in configuration file under the **\[SERVICE\]** section.
 
 ```python
 [SERVICE]
@@ -68,7 +68,7 @@ Fluent Bit v1.x.x
 [3] dummy.data: [1499347996.001320284, {"INT"=>"100", "FLOAT"=>"0.5", "BOOL"=>"true", "STRING"=>"This is example"}]
 ```
 
-You can see the record `{"data":"100 0.5 true This is example"}` are parsed.
+You can see the records `{"data":"100 0.5 true This is example"}` are parsed.
 
 ### Preserve original fields
 
@@ -141,7 +141,7 @@ If you enable `Reserved_Data` and `Preserve_Key`, the original key field will be
     Preserve_Key On
 ```
 
-This will produce the output:
+This will produce the following output:
 
 ```text
 $ fluent-bit -c dummy.conf
